@@ -489,28 +489,28 @@ char *strndup(const char *str,size_t n) {
 enum {LO_DEFAULT=0, LO_TIMESTAMPS, LO_RELTIMESTAMPS, LO_UPTIMESTAMPS, LO_VERSION, LO_HELP, LO_PRINTCOUNTS, LO_PRINTOFFSETS};
 static int long_only_option = 0;
 static const struct option longoptions[] = {
-    {"display",              required_argument,	NULL,              'd'},
-    {"fakedisplay",          required_argument,	NULL,              'D'},
-    {"authfile",             required_argument,	NULL,              'f'},
-    {"newauthfile",          required_argument,	NULL,              'F'},
-    {"copyauthentication",   no_argument,       NULL,              'c'},
-    {"nocopyauthentication", no_argument,       NULL,              'n'},
-    {"waitforclient",        no_argument,       NULL,              'w'},
-    {"stopwhendone",         no_argument,       NULL,              's'},
-    {"keeprunning",          no_argument,       NULL,              'k'},
+    /* {"display",              required_argument,	NULL,              'd'}, */
+    /* {"fakedisplay",          required_argument,	NULL,              'D'}, */
+    /* {"authfile",             required_argument,	NULL,              'f'}, */
+    /* {"newauthfile",          required_argument,	NULL,              'F'}, */
+    /* {"copyauthentication",   no_argument,       NULL,              'c'}, */
+    /* {"nocopyauthentication", no_argument,       NULL,              'n'}, */
+    /* {"waitforclient",        no_argument,       NULL,              'w'}, */
+    /* {"stopwhendone",         no_argument,       NULL,              's'}, */
+    /* {"keeprunning",          no_argument,       NULL,              'k'}, */
     {"denyextensions",       no_argument,       NULL,              'e'},
-    {"readwritedebug",       no_argument,       NULL,              'w'},
-    {"maxlistlength",        required_argument,	NULL,              'm'},
+    /* {"readwritedebug",       no_argument,       NULL,              'w'}, */
+    /* {"maxlistlength",        required_argument,	NULL,              'm'}, */
     {"outfile",	             required_argument, NULL,              'o'},
-    {"buffered",             no_argument,       NULL,              'b'},
-    {"interactive",          no_argument,       NULL,              'i'},
+    /* {"buffered",             no_argument,       NULL,              'b'}, */
+    /* {"interactive",          no_argument,       NULL,              'i'}, */
     {"help",                 no_argument,       &long_only_option, LO_HELP},
-    {"version",              no_argument,       &long_only_option, LO_VERSION},
-    {"timestamps",           no_argument,       &long_only_option, LO_TIMESTAMPS},
-    {"relative-timestamps",  no_argument,       &long_only_option, LO_RELTIMESTAMPS},
-    {"monotonic-timestamps", no_argument,       &long_only_option, LO_UPTIMESTAMPS},
-    {"print-counts",         no_argument,       &long_only_option, LO_PRINTCOUNTS},
-    {"print-offsets",        no_argument,       &long_only_option, LO_PRINTOFFSETS},
+    /* {"version",              no_argument,       &long_only_option, LO_VERSION}, */
+    /* {"timestamps",           no_argument,       &long_only_option, LO_TIMESTAMPS}, */
+    /* {"relative-timestamps",  no_argument,       &long_only_option, LO_RELTIMESTAMPS}, */
+    /* {"monotonic-timestamps", no_argument,       &long_only_option, LO_UPTIMESTAMPS}, */
+    /* {"print-counts",         no_argument,       &long_only_option, LO_PRINTCOUNTS}, */
+    /* {"print-offsets",        no_argument,       &long_only_option, LO_PRINTOFFSETS}, */
     {NULL,                   0,                 NULL,              0}
 };
 
@@ -535,53 +535,54 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
 
     out = stdout;
-    while( (c=getopt_long(argc,argv,"+I:d:D:f:F:cnWskiewm:o:b",longoptions,NULL)) != -1 ) {
+    /* while( (c=getopt_long(argc,argv,"+I:d:D:f:F:cnWskiewm:o:b",longoptions,NULL)) != -1 ) { */
+    while( (c=getopt_long(argc,argv,"eo:",longoptions,NULL)) != -1 ) {
         switch( c ) {
-        case 'I':
-            add_searchpath(parser, optarg);
-            break;
-        case 'd':
-            out_displayname = optarg;
-            break;
-        case 'D':
-            in_displayname = optarg;
-            break;
-        case 'f':
-            out_authfile = optarg;
-            break;
-        case 'F':
-            in_authfile = optarg;
-            break;
-        case 'c':
-            copyauth = true;
-            break;
-        case 'n':
-            copyauth = false;
-            break;
-        case 'W':
-            waitforclient = true;
-            break;
-        case 's':
-            stopwhennone = true;
-            break;
-        case 'k':
-            stopwhennone = false;
-            break;
+        /* case 'I': */
+        /*     add_searchpath(parser, optarg); */
+        /*     break; */
+        /* case 'd': */
+        /*     out_displayname = optarg; */
+        /*     break; */
+        /* case 'D': */
+        /*     in_displayname = optarg; */
+        /*     break; */
+        /* case 'f': */
+        /*     out_authfile = optarg; */
+        /*     break; */
+        /* case 'F': */
+        /*     in_authfile = optarg; */
+        /*     break; */
+        /* case 'c': */
+        /*     copyauth = true; */
+        /*     break; */
+        /* case 'n': */
+        /*     copyauth = false; */
+        /*     break; */
+        /* case 'W': */
+        /*     waitforclient = true; */
+        /*     break; */
+        /* case 's': */
+        /*     stopwhennone = true; */
+        /*     break; */
+        /* case 'k': */
+        /*     stopwhennone = false; */
+        /*     break; */
         case 'e':
             denyallextensions = true;
             break;
-        case 'w':
-            readwritedebug = true;
-            break;
-        case 'm':
-            maxshownlistlen = strtoll(optarg,NULL,0);
-            break;
-        case 'i':
-            interactive = true;
-            break;
-        case 'b':
-            buffered = true;
-            break;
+        /* case 'w': */
+        /*     readwritedebug = true; */
+        /*     break; */
+        /* case 'm': */
+        /*     maxshownlistlen = strtoll(optarg,NULL,0); */
+        /*     break; */
+        /* case 'i': */
+        /*     interactive = true; */
+        /*     break; */
+        /* case 'b': */
+        /*     buffered = true; */
+        /*     break; */
         case 'o':
             if( out != stdout ) {
                 fprintf(stderr, "Multiple -o options!\n");
@@ -603,49 +604,49 @@ int main(int argc, char *argv[]) {
                 printf(
                     "%s: Dump all X protocol data being tunneled from a fake X display to a real one.\n"
                     "usage: xtrace [options] [[--] command args ...]\n"
-                    "--display, -d <display to connect to>\n"
-                    "--fakedisplay, -D <display to fake>\n"
-                    "--copyauthentication, -c	Copy credentials\n"
-                    "--nocopyauthentication, -n	Do not copy credentials\n"
-                    "--authfile, -f <file instead of ~/.Xauthority to get credentials from>\n"
-                    "--newauthfile, -F <file instead of ~/.Xauthority to put credentials in>\n"
-                    "--waitforclient, -W		wait for connection even if command terminates\n"
-                    "--stopwhendone, -s		Return when last client disconnects\n"
-                    "--keeprunning, -k		Keep running\n"
+                    /* "--display, -d <display to connect to>\n" */
+                    /* "--fakedisplay, -D <display to fake>\n" */
+                    /* "--copyauthentication, -c	Copy credentials\n" */
+                    /* "--nocopyauthentication, -n	Do not copy credentials\n" */
+                    /* "--authfile, -f <file instead of ~/.Xauthority to get credentials from>\n" */
+                    /* "--newauthfile, -F <file instead of ~/.Xauthority to put credentials in>\n" */
+                    /* "--waitforclient, -W		wait for connection even if command terminates\n" */
+                    /* "--stopwhendone, -s		Return when last client disconnects\n" */
+                    /* "--keeprunning, -k		Keep running\n" */
                     "--denyextensions, -e		Fake unavailability of all extensions\n"
-                    "--readwritedebug, -w		Print amounts of data read/sent\n"
-                    "--maxlistlength, -m <maximum number of entries in each list shown>\n"
-                    "--outfile, -o <filename>	Output to file instead of stdout\n"
-                    "--buffered, -b			Do not output every line but only when buffer is full\n",
+                    /* "--readwritedebug, -w		Print amounts of data read/sent\n" */
+                    /* "--maxlistlength, -m <maximum number of entries in each list shown>\n" */
+                    "--outfile, -o <filename>	Output to file instead of stdout\n",
+                    /* "--buffered, -b			Do not output every line but only when buffer is full\n", */
                     argv[0]);
                 exit(EXIT_SUCCESS);
-            case LO_VERSION:
-                puts(PACKAGE " version " VERSION);
-                exit(EXIT_SUCCESS);
-            case LO_TIMESTAMPS:
-                print_timestamps = true;
-                break;
-            case LO_RELTIMESTAMPS:
-                print_reltimestamps = true;
-                break;
-            case LO_UPTIMESTAMPS:
-#ifndef HAVE_MONOTONIC_CLOCK
-                fprintf(stderr, "--monotonic-timestamps not supported as clock_gettime(MONOTONIC_CLOCK, ) was not available at compile time\n");
-                exit(EXIT_FAILURE);
-#else
-                if (sysconf(_SC_MONOTONIC_CLOCK) < 0) {
-                    fprintf(stderr, "--monotonic-timestamps not supported on this system\n");
-                    exit(EXIT_FAILURE);
-                }
-                print_uptimestamps = true;
-#endif
-                break;
-            case LO_PRINTCOUNTS:
-                print_counts = true;
-                break;
-            case LO_PRINTOFFSETS:
-                print_offsets = true;
-                break;
+/*             case LO_VERSION: */
+/*                 puts(PACKAGE " version " VERSION); */
+/*                 exit(EXIT_SUCCESS); */
+/*             case LO_TIMESTAMPS: */
+/*                 print_timestamps = true; */
+/*                 break; */
+/*             case LO_RELTIMESTAMPS: */
+/*                 print_reltimestamps = true; */
+/*                 break; */
+/*             case LO_UPTIMESTAMPS: */
+/* #ifndef HAVE_MONOTONIC_CLOCK */
+/*                 fprintf(stderr, "--monotonic-timestamps not supported as clock_gettime(MONOTONIC_CLOCK, ) was not available at compile time\n"); */
+/*                 exit(EXIT_FAILURE); */
+/* #else */
+/*                 if (sysconf(_SC_MONOTONIC_CLOCK) < 0) { */
+/*                     fprintf(stderr, "--monotonic-timestamps not supported on this system\n"); */
+/*                     exit(EXIT_FAILURE); */
+/*                 } */
+/*                 print_uptimestamps = true; */
+/* #endif */
+/*                 break; */
+/*             case LO_PRINTCOUNTS: */
+/*                 print_counts = true; */
+/*                 break; */
+/*             case LO_PRINTOFFSETS: */
+/*                 print_offsets = true; */
+/*                 break; */
             }
             break;
         case ':':
@@ -688,12 +689,12 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 //	generateAuthorisation(out_displayname);
-    if( copyauth ) {
-        /* TODO: normalize them? or keep them so the user has more
-         * control? */
-        if( !copy_authentication(in_displayname,out_displayname,in_authfile,out_authfile) )
-            return -1;
-    }
+    /* if( copyauth ) { */
+    /*     /\* TODO: normalize them? or keep them so the user has more */
+    /*      * control? *\/ */
+    /*     if( !copy_authentication(in_displayname,out_displayname,in_authfile,out_authfile) ) */
+    /*         return -1; */
+    /* } */
     setvbuf(out, NULL, buffered?_IOFBF:_IOLBF, BUFSIZ);
     listener = listenForClients(in_displayname,in_family,in_display);
     if( listener < 0 ) {
