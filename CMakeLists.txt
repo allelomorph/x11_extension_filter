@@ -6,6 +6,11 @@ project(x11_extension_filter
   LANGUAGES C
 )
 
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+include(Getcmake_utils)
+
+include(PreventInSourceBuild)
+
 if(NOT EXISTS ${PROJECT_SOURCE_DIR}/config.h)
   execute_process(
     COMMAND ./configure
@@ -18,6 +23,7 @@ endif()
 add_executable(x11_extension_filter
   atoms.c
   copyauth.c
+  final_parse_state_dump.c
   main.c
   parse.c
   stringlist.c
@@ -29,9 +35,15 @@ add_executable(x11_extension_filter
 target_include_directories(x11_extension_filter PRIVATE
   ${PROJECT_SOURCE_DIR}
 )
-
 # allows use of .proto Protobuf files
 # no need for FindProtobuf.cmake
 target_compile_definitions(x11_extension_filter PUBLIC
   PKGDATADIR="${PROJECT_SOURCE_DIR}"
+)
+include(SetStrictCompileOptions)
+set_strict_compile_options(x11_extension_filter)
+set_target_properties(x11_extension_filter PROPERTIES
+  C_STANDARD 99
+  C_STANDARD_REQUIRED ON
+  C_EXTENSIONS OFF
 )

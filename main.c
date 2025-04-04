@@ -39,6 +39,8 @@
 #include "stringlist.h"
 #include "translate.h"
 
+#include "final_parse_state_dump.h"
+
 FILE *out;
 
 bool readwritedebug = false;
@@ -662,6 +664,8 @@ int main(int argc, char *argv[]) {
     if( !parser_free(parser) ) {
         return EXIT_FAILURE;
     }
+
+    final_parse_state_dump();
 
     signal(SIGPIPE,SIG_IGN);
     if( out_displayname == NULL ) {
