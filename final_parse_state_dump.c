@@ -167,6 +167,14 @@ extern const struct parameter *unexpected_reply;
 extern const struct parameter *setup_parameters;
 */
 
+#define DUMP_FILENAME "final_parse_state.txt"
+#define TAB4 "    "
+#define TABx1 TAB4
+#define TABx2 TABx1 TABx1
+#define TABx3 TABx2 TABx1
+#define TABx4 TABx3 TABx1
+#define TABx5 TABx4 TABx1
+
 static const char* request_func_name(request_func* rf) {
     if (rf == requestQueryExtension ) {
         return "requestQueryExtension";
@@ -288,57 +296,56 @@ static const char* fieldtype_name(const int ft) {
     return fieldtype_names[ft];
 }
 
-#define DUMP_FILENAME "final_parse_state.txt"
-#define TAB4 "    "
+static void fprint_requests(FILE* ofs) {
+    /* extern const struct request *requests; */
+    /* extern size_t num_requests; */
+    fprintf( ofs, "num_requests: %lu\n", num_requests );
+    for (size_t i = 0; i < num_requests; ++i) {
+        struct request req = requests[i];
+        fprintf( ofs, "requests[%lu] {\n", i );
+        fprintf( ofs, TABx1 "name: %s\n", req.name );
+        // note parse.c print_parameters
+        fprintf( ofs, TABx1 "parameters: {\n" );
+        for ( const struct parameter* param = req.parameters;
+              param != NULL && param->name != NULL; ++param ) {
+            fprintf( ofs, TABx2 "{\n" );
+            fprintf( ofs, TABx3 "name: %s\n", param->name );
+            fprintf( ofs, TABx3 "type: %s\n", fieldtype_name(param->type) );
+            fprintf( ofs, TABx2 "}\n" );
+        }
+        fprintf( ofs, TABx1 "}\n" );
+        fprintf( ofs, TABx1 "answers: {\n" );
+        for ( const struct parameter* ans = req.answers;
+              ans != NULL && ans->name != NULL; ++ans ) {
+            fprintf( ofs, TABx2 "{\n" );
+            fprintf( ofs, TABx3 "name: %s\n", ans->name );
+            fprintf( ofs, TABx3 "type: %s\n", fieldtype_name(ans->type) );
+            fprintf( ofs, TABx2 "}\n" );
+        }
+        fprintf( ofs, TABx1 "}\n" );
+        fprintf( ofs, TABx1 "request_func: %s\n", request_func_name(req.request_func) );
+        fprintf( ofs, TABx1 "reply_func: %s\n", reply_func_name(req.reply_func) );
+        fprintf( ofs, TABx1 "record_variables: %i  // stack values to be transferred to the reply code\n",
+                 req.record_variables );
+        fprintf( ofs, "}\n" );
+    }
+}
 
 void final_parse_state_dump(void) {
-    FILE *out_fs = fopen(DUMP_FILENAME, "w");
-    if ( out_fs == NULL ) {
+    FILE *ofs = fopen(DUMP_FILENAME, "w");
+    if ( ofs == NULL ) {
         fprintf( stderr,
                  "%s fopen(\"%s\", \"%s\"): %d=%s\n",
                  __func__, DUMP_FILENAME, "w", errno, strerror(errno) );
         return;
     }
 
-    fprintf( out_fs, "parse state after `finalize_everything(parser)`:\n");
-    fprintf( out_fs, "\n");
+    fprintf( ofs, "parse state after `finalize_everything(parser)`:\n");
+    fprintf( ofs, "\n");
 
     /* extern const struct request *requests; */
     /* extern size_t num_requests; */
-    fprintf( out_fs, "num_requests: %lu\n", num_requests );
-    for (size_t i = 0; i < num_requests; ++i) {
-        struct request req = requests[i];
-        fprintf( out_fs, "requests[%lu] {\n", i );
-        fprintf( out_fs, TAB4 "name: %s\n", req.name );
-        // const struct parameter *parameters;
-        // unknownrequest, or parameters_finalize(namespace->request.request)
-        // note parse.c print_parameters
-        fprintf( out_fs, TAB4 "parameters: {\n" );
-        for ( const struct parameter* param = req.parameters;
-              param != NULL && param->name != NULL; ++param ) {
-            fprintf( out_fs, TAB4 TAB4 "{\n" );
-            fprintf( out_fs, TAB4 TAB4 TAB4 "name: %s\n", param->name );
-            fprintf( out_fs, TAB4 TAB4 TAB4 "type: %s\n", fieldtype_name(param->type) );
-            fprintf( out_fs, TAB4 TAB4 "}\n" );
-        }
-        fprintf( out_fs, TAB4 "}\n" );
-        // const struct parameter *answers;
-        fprintf( out_fs, TAB4 "answers: {\n" );
-        for ( const struct parameter* ans = req.answers;
-              ans != NULL && ans->name != NULL; ++ans ) {
-            fprintf( out_fs, TAB4 TAB4 "{\n" );
-            fprintf( out_fs, TAB4 TAB4 TAB4 "name: %s\n", ans->name );
-            fprintf( out_fs, TAB4 TAB4 TAB4 "type: %s\n", fieldtype_name(ans->type) );
-            fprintf( out_fs, TAB4 TAB4 "}\n" );
-        }
-        fprintf( out_fs, TAB4 "}\n" );
-        // unknownresponse, or parameters_finalize(namespace->request.response)
-        fprintf( out_fs, TAB4 "request_func: %s\n", request_func_name(req.request_func) );
-        fprintf( out_fs, TAB4 "reply_func: %s\n", reply_func_name(req.reply_func) );
-        fprintf( out_fs, TAB4 "record_variables: %i  // stack values to be transferred to the reply code\n",
-                 req.record_variables );
-        fprintf( out_fs, "}\n" );
-    }
+    fprint_requests(ofs);
 
     /* extern const struct event *events; */
     /* extern size_t num_events; */
@@ -348,5 +355,6 @@ void final_parse_state_dump(void) {
     /* extern size_t num_extensions; */
     /* extern const struct parameter *unexpected_reply; */
     /* extern const struct parameter *setup_parameters; */
+
     return;
 }
