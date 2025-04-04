@@ -2,6 +2,7 @@
 #include <string.h>    // strerror
 #include <errno.h>
 #include <stdbool.h>   // needed for parse.h
+#include <assert.h>
 
 #include "final_parse_state_dump.h"
 #include "parse.h"
@@ -195,176 +196,96 @@ static const char* reply_func_name(reply_func* rf) {
 }
 
 static const char* fieldtype_name(const int ft) {
-    switch (ft) {
+    assert(ft_INT8 == 0);
+    assert(ft >= ft_INT8 && ft <= ft_SET);
+    static const char* fieldtype_names[] = {
         // signed endian specific:
-    case ft_INT8:
-        return "ft_INT8";
-    case ft_INT16:
-        return "ft_INT16";
-    case ft_INT32:
-        return "ft_INT32";
+        "ft_INT8", "ft_INT16", "ft_INT32",
         // unsigned decimal endian specific:
-    case ft_UINT8:
-        return "ft_UINT8";
-    case ft_UINT16:
-        return "ft_UINT16";
-    case ft_UINT32:
-        return "ft_UINT32";
+        "ft_UINT8", "ft_UINT16", "ft_UINT32",
         // unsigned hex endian specific:
-    case ft_CARD8:
-        return "ft_CARD8";
-    case ft_CARD16:
-        return "ft_CARD16";
-    case ft_CARD32:
-        return "ft_CARD32";
+        "ft_CARD8", "ft_CARD16", "ft_CARD32",
         // enums (not in constant list is error):
-    case ft_ENUM8:
-        return "ft_ENUM8";
-    case ft_ENUM16:
-        return "ft_ENUM16";
-    case ft_ENUM32:
-        return "ft_ENUM32";
+        "ft_ENUM8", "ft_ENUM16", "ft_ENUM32",
         // counts for following strings, lists, ...
         // value-mask for LISTofFormat
-    case ft_STORE8:
-        return "ft_STORE8";
-    case ft_STORE16:
-        return "ft_STORE16";
-    case ft_STORE32:
-        return "ft_STORE32";
-        // to be ft_GET later into the store register
-    case ft_PUSH8:
-        return "ft_PUSH8";
-    case ft_PUSH16:
-        return "ft_PUSH16";
-    case ft_PUSH32:
-        return "ft_PUSH32";
+        "ft_STORE8", "ft_STORE16", "ft_STORE32",
+        // to be "ft_GET" later into the store register
+        "ft_PUSH8", "ft_PUSH16", "ft_PUSH32",
         // bitfields: multiple values are possible
-    case ft_BITMASK8:
-        return "ft_BITMASK8";
-    case ft_BITMASK16:
-        return "ft_BITMASK16";
-    case ft_BITMASK32:
-        return "ft_BITMASK32";
+        "ft_BITMASK8", "ft_BITMASK16", "ft_BITMASK32",
         // Different forms of lists:
         //	- boring ones
-    case ft_STRING8:
-        return "ft_STRING8";
-    case ft_LISTofCARD32:
-        return "ft_LISTofCARD32";
-    case ft_LISTofATOM:
-        return "ft_LISTofATOM";
-    case ft_LISTofCARD8:
-        return "ft_LISTofCARD8";
-    case ft_LISTofCARD16:
-        return "ft_LISTofCARD16";
-    case ft_LISTofUINT8:
-        return "ft_LISTofUINT8";
-    case ft_LISTofUINT16:
-        return "ft_LISTofUINT16";
-    case ft_LISTofUINT32:
-        return "ft_LISTofUINT32";
-    case ft_LISTofINT8:
-        return "ft_LISTofINT8";
-    case ft_LISTofINT16:
-        return "ft_LISTofINT16";
-    case ft_LISTofINT32:
-        return "ft_LISTofINT32";
+        "ft_STRING8", "ft_LISTofCARD32", "ft_LISTofATOM",
+        "ft_LISTofCARD8", "ft_LISTofCARD16",
+        "ft_LISTofUINT8", "ft_LISTofUINT16",
+        "ft_LISTofUINT32",
+        "ft_LISTofINT8", "ft_LISTofINT16",
+        "ft_LISTofINT32",
         //	- one of the above depening on last FORMAT
-    case ft_LISTofFormat:
-        return "ft_LISTofFormat";
+        "ft_LISTofFormat",
         //	- iterate of list description in constants field
-    case ft_LISTofStruct:
-        return "ft_LISTofStruct";
+        "ft_LISTofStruct",
         //	- same but length is mininum length and
         //	  actual length is taken from end of last list
         //	  or LASTMARKER, unless there is a SIZESET
-    case ft_LISTofVarStruct:
-        return "ft_LISTofVarStruct";
+        "ft_LISTofVarStruct",
         //	- like ENUM for last STORE, but constants
         //	  are of type (struct value*) interpreteted at this
         //	  offset
-    case ft_LISTofVALUE:
-        return "ft_LISTofVALUE";
+        "ft_LISTofVALUE",
         // an LISTofStruct with count = 1
-    case ft_Struct:
-        return "ft_Struct";
+        "ft_Struct",
         // specify bits per item for LISTofFormat
-    case ft_FORMAT8:
-        return "ft_FORMAT8";
+        "ft_FORMAT8",
         // an event
         // (would have also been possible with Struct and many IF)
-    case ft_EVENT:
-        return "ft_EVENT";
+        "ft_EVENT",
         // jump to other parameter list if matches
-    case ft_IF8:
-        return "ft_IF8";
-    case ft_IF16:
-        return "ft_IF16";
-    case ft_IF32:
-        return "ft_IF32";
+        "ft_IF8",
+        "ft_IF16",
+        "ft_IF32",
         // jump to other parameter list if matches atom name
-    case ft_IFATOM:
-        return "ft_IFATOM";
+        "ft_IFATOM",
         // set end of last list manually, (for LISTofVarStruct)
-    case ft_LASTMARKER:
-        return "ft_LASTMARKER";
+        "ft_LASTMARKER",
         // set the end of the current context, also change length
         // of a VarStruct:
-    case ft_SET_SIZE:
-        return "ft_SET_SIZE";
-        // a ft_CARD32 looking into the ATOM list
-    case ft_ATOM:
-        return "ft_ATOM";
+        "ft_SET_SIZE",
+        // a "ft_CARD32" looking into the ATOM list
+        "ft_ATOM",
         // always big endian
-    case ft_BE32:
-        return "ft_BE32";
+        "ft_BE32",
         // get the #ofs value from the stack. (0 is the last pushed)
-    case ft_GET:
-        return "ft_GET";
+        "ft_GET",
         // a fixed-point number 16+16 bit
-    case ft_FIXED:
-        return "ft_FIXED";
+        "ft_FIXED",
         // a list of those
-    case ft_LISTofFIXED:
-        return "ft_LISTofFIXED";
+        "ft_LISTofFIXED",
         // a fixed-point number 32+32 bit
-    case ft_FIXED3232:
-        return "ft_FIXED3232";
+        "ft_FIXED3232",
         // a list of those
-    case ft_LISTofFIXED3232:
-        return "ft_LISTofFIXED3232";
+        "ft_LISTofFIXED3232",
         // a 32 bit floating pointer number
-    case ft_FLOAT32:
-        return "ft_FLOAT32";
+        "ft_FLOAT32",
         // a list of those
-    case ft_LISTofFLOAT32:
-        return "ft_LISTofFLOAT32";
+        "ft_LISTofFLOAT32",
         // fraction with nominator and denominator 16 bit
-    case ft_FRACTION16_16:
-        return "ft_FRACTION16_16";
-        // dito 32 bit
-    case ft_FRACTION32_32:
-        return "ft_FRACTION32_32";
+        "ft_FRACTION16_16",
+        // ditto 32 bit
+        "ft_FRACTION32_32",
         // nominator is unsigned
-    case ft_UFRACTION32_32:
-        return "ft_UFRACTION32_32";
+        "ft_UFRACTION32_32",
         // a 64 bit number consisting of first the high 32 bit, then
         // the low 32 bit
-    case ft_INT32_32:
-        return "ft_INT32_32";
+        "ft_INT32_32",
         // decrement stored value by specific value
-    case ft_DECREMENT_STORED:
-        return "ft_DECREMENT_STORED";
-    case ft_DIVIDE_STORED:
-        return "ft_DIVIDE_STORED";
+        "ft_DECREMENT_STORED",
+        "ft_DIVIDE_STORED",
         // set stored value to specific value
-    case ft_SET:
-        return "ft_SET";
-    default:
-        return "(unknown)";
-    }
-    return NULL;
+        "ft_SET"
+    };
+    return fieldtype_names[ft];
 }
 
 #define DUMP_FILENAME "final_parse_state.txt"
