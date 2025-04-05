@@ -171,7 +171,7 @@ extern const struct parameter *setup_parameters;
 #define DUMP_FILENAME "final_parse_state.txt"
 #define TAB2 "  "
 #define TAB4 "    "
-#define TABx1 TAB2
+#define TABx1 TAB4
 #define TABx2 TABx1 TABx1
 #define TABx3 TABx2 TABx1
 #define TABx4 TABx3 TABx1
@@ -614,31 +614,27 @@ static void fprint_requests(FILE* ofs, const unsigned int base_tab_ct,
     const char* _base_indent = base_indent(base_tab_ct);
     fprintf( ofs, "%s%s: %u\n",
              _base_indent, request_ct_varname, request_ct );
-    if (request_ct == 0)
-        return;
-    fprintf( ofs, "%srequests {\n",
-             _base_indent );
     for (unsigned int i = 0; i < request_ct; ++i) {
         const struct request req = requests[i];
-        fprintf( ofs, TABx1 "%s[%u] {\n",
+        fprintf( ofs, "%srequests[%u] {\n",
                  _base_indent, i );
-        fprintf( ofs, TABx2 "%sname: %s\n",
+        fprintf( ofs, TABx1 "%sname: %s\n",
                  _base_indent, req.name );
-        fprint_parameters( ofs, base_tab_ct + 2,
+        fprint_parameters( ofs, base_tab_ct + 1,
                            req.parameters, "parameters" );
-        fprint_parameters( ofs, base_tab_ct + 2,
+        fprint_parameters( ofs, base_tab_ct + 1,
                            req.answers, "answers" );
-        fprintf( ofs, TABx2 "%srequest_func: %s\n",
+        fprintf( ofs, TABx1 "%srequest_func: %s\n",
                  _base_indent, request_func_name(req.request_func) );
-        fprintf( ofs, TABx2 "%sreply_func: %s\n",
+        fprintf( ofs, TABx1 "%sreply_func: %s\n",
                  _base_indent, reply_func_name(req.reply_func) );
-        fprintf( ofs, TABx2 "%srecord_variables: %i  // stack values to be transferred to the reply code\n",
+        fprintf( ofs, TABx1 "%s// stack values to be transferred to the reply code\n",
+                 _base_indent );
+        fprintf( ofs, TABx1 "%srecord_variables: %i\n",
                  _base_indent, req.record_variables );
-        fprintf( ofs, TABx1 "%s}\n",
+        fprintf( ofs, "%s}\n",
                  _base_indent );
     }
-    fprintf( ofs, "%s}\n",
-             _base_indent );
 }
 
 static void fprint_events(FILE* ofs, const unsigned int base_tab_ct,
@@ -653,24 +649,20 @@ static void fprint_events(FILE* ofs, const unsigned int base_tab_ct,
              _base_indent, event_ct_varname, event_ct );
     if (event_ct == 0)
         return;
-    fprintf( ofs, "%sevents {\n",
-             _base_indent );
     for (unsigned int i = 0; i < event_ct; ++i) {
         const struct event evnt = events[i];
-        fprintf( ofs, TABx1 "%s[%u] {\n",
+        fprintf( ofs, "%sevents[%u] {\n",
                  _base_indent, i );
-        fprintf( ofs, TABx2 "%sname: %s\n",
+        fprintf( ofs, TABx1 "%sname: %s\n",
                  _base_indent, evnt.name );
-        fprint_parameters( ofs, base_tab_ct + 2,
+        fprint_parameters( ofs, base_tab_ct + 1,
                            evnt.parameters, "parameters" );
-        fprintf( ofs, TABx2 "%stype: %s (%i)\n",
+        fprintf( ofs, TABx1 "%stype: %s (%i)\n",
                  _base_indent,
                  evnt.type == 0 ? "event_normal" : "event_xge", evnt.type );
-        fprintf( ofs, TABx1 "%s}\n",
+        fprintf( ofs, "%s}\n",
                  _base_indent );
     }
-    fprintf( ofs, "%s}\n",
-             _base_indent );
 }
 
 static void fprint_errors(FILE* ofs, const unsigned int base_tab_ct,
@@ -683,18 +675,12 @@ static void fprint_errors(FILE* ofs, const unsigned int base_tab_ct,
     const char* _base_indent = base_indent(base_tab_ct);
     fprintf( ofs, "%s%s: %u\n",
              _base_indent, error_ct_varname, error_ct );
-    if (error_ct == 0)
-        return;
-    fprintf( ofs, "%serrors {\n",
-             _base_indent );
     for (unsigned int i = 0, iwidth = field_width(error_ct);
          i < error_ct; ++i) {
         const char* error = errors[i];
-        fprintf( ofs, TABx1 "%s[%*u] %s\n",
+        fprintf( ofs, "%serrors[%*u] %s\n",
                  _base_indent, (int)iwidth, i, error );
     }
-    fprintf( ofs, "%s}\n",
-             _base_indent );
 }
 
 static void fprint_extensions(FILE* ofs) {
