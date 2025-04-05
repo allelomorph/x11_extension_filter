@@ -3,6 +3,7 @@
 #include <errno.h>
 #include <stdbool.h>   // needed for parse.h
 #include <assert.h>
+#include <stdint.h>
 
 #include "final_parse_state_dump.h"
 #include "parse.h"
@@ -297,13 +298,241 @@ static const char* fieldtype_name(const int ft) {
     return fieldtype_names[ft];
 }
 
-static void fprint_parameter(FILE* ofs, const char* base_indent,
+static void fprint_parameter(FILE* ofs, const int base_tab_ct,
                              const struct parameter* param) {
     assert(ofs != NULL);
     assert(param != NULL);
+    assert(base_tab_ct >= 0 && base_tab_ct <= 5);
+    const char* base_indent =
+        base_tab_ct == 1 ? TABx1 :
+        base_tab_ct == 2 ? TABx2 :
+        base_tab_ct == 3 ? TABx3 :
+        base_tab_ct == 4 ? TABx4 :
+        base_tab_ct == 5 ? TABx5 : "";
     fprintf( ofs, "%s{\n", base_indent );
     fprintf( ofs, TABx1 "%sname: %s\n", base_indent, param->name );
     fprintf( ofs, TABx1 "%stype: %s\n", base_indent, fieldtype_name(param->type) );
+    if ( param->o.constants == NULL ||
+         param->o.parameters == NULL ||
+         param->o.values == NULL ) {  // intentionally redundant check of union
+        goto close_parameter;
+    }
+    if (param->type >= ft_INT8 && param->type <= ft_BITMASK32) {
+        fprintf( ofs, TABx1 "%so.constants: {\n", base_indent );
+        for (const struct constant* _const = param->o.constants;
+             _const != NULL && _const->name != NULL; ++_const) {
+            fprintf( ofs, TABx2 "%s{\n", base_indent );
+            switch (param->type) {
+            case ft_INT8:
+            case ft_INT16:
+            case ft_INT32:
+                fprintf( ofs, TABx3 "%svalue: %li\n", base_indent, _const->value );
+                break;
+            case ft_UINT8:
+            case ft_UINT16:
+            case ft_UINT32:
+                fprintf( ofs, TABx3 "%svalue: %lu\n", base_indent, _const->value );
+                break;
+            case ft_CARD8:  // hex
+            case ft_CARD16:
+            case ft_CARD32:
+                fprintf( ofs, TABx3 "%svalue: 0x%lx\n", base_indent, _const->value );
+                break;
+            case ft_ENUM8:  // int
+            case ft_ENUM16:
+            case ft_ENUM32:
+                fprintf( ofs, TABx3 "%svalue: %li\n", base_indent, _const->value );
+                break;
+            /* case ft_STORE8: */
+            /* case ft_STORE16: */
+            /* case ft_STORE32: */
+            /*     break; */
+            /* case ft_PUSH8: */
+            /* case ft_PUSH16: */
+            /* case ft_PUSH32: */
+            /*     break; */
+            case ft_BITMASK8:
+            case ft_BITMASK16:
+            case ft_BITMASK32:
+                fprintf( ofs, TABx3 "%svalue: 0x%lx\n", base_indent, _const->value );
+                break;
+            default:
+                break;
+            }
+            fprintf( ofs, TABx3 "%sname: %s\n", base_indent, _const->name );
+            fprintf( ofs, TABx2 "%s}\n", base_indent );
+        }
+        fprintf( ofs, TABx1 "%s}\n", base_indent );
+    } else if (false) {
+    }
+    switch (param->type) {
+        // Different forms of lists:
+        //	- boring ones
+    case ft_STRING8:  // tl
+        break;
+    case ft_LISTofCARD32:  // tl
+        break;
+    case ft_LISTofATOM:  // tl
+        break;
+    case ft_LISTofCARD8:  // tl
+        break;
+    case ft_LISTofCARD16:  // tl
+        break;
+    case ft_LISTofUINT8:
+        break;
+    case ft_LISTofUINT16:
+        break;
+    case ft_LISTofUINT32:
+        break;
+    case ft_LISTofINT8:
+        break;
+    case ft_LISTofINT16:
+        break;
+    case ft_LISTofINT32:
+        break;
+        //	- one of the above depening on last FORMAT
+    case ft_LISTofFormat:  // tl
+        break;
+        //	- iterate of list description in constants field
+    case ft_LISTofStruct:  // tl
+        break;
+        //	- same but length is mininum length and
+        //	  actual length is taken from end of last list
+        //	  or LASTMARKER, unless there is a SIZESET
+    case ft_LISTofVarStruct:  // tl
+        break;
+        //	- like ENUM for last STORE, but constants
+        //	  are of type (struct value*) interpreteted at this
+        //	  offset
+    case ft_LISTofVALUE:
+        fprintf( ofs, TABx1 "%so.values: {\n", base_indent );
+        for (const struct value* val = param->o.values;
+             val != NULL && val->name != NULL; ++val) {
+            fprintf( ofs, TABx2 "%s{\n", base_indent );
+            fprintf( ofs, TABx3 "%sflag: 0x%lx\n", base_indent, val->flag );
+            fprintf( ofs, TABx3 "%sname: %s\n", base_indent, val->name );
+            assert(val->type <= ft_BITMASK32);
+            fprintf( ofs, TABx3 "%stype: %s\n", base_indent, fieldtype_name(val->type) );
+            fprintf( ofs, TABx3 "%sconstants: {\n", base_indent );
+            for (const struct constant* _const = val->constants;
+                 _const != NULL && _const->name != NULL; ++_const) {
+                fprintf( ofs, TABx4 "%s{\n", base_indent );
+                switch (val->type) {
+                case ft_INT8:
+                case ft_INT16:
+                case ft_INT32:
+                    fprintf( ofs, TABx5 "%svalue: %li\n", base_indent, _const->value );
+                    break;
+                case ft_UINT8:
+                case ft_UINT16:
+                case ft_UINT32:
+                    fprintf( ofs, TABx5 "%svalue: %lu\n", base_indent, _const->value );
+                    break;
+                case ft_CARD8:   // hex
+                case ft_CARD16:
+                case ft_CARD32:
+                    fprintf( ofs, TABx5 "%svalue: 0x%lx\n", base_indent, _const->value );
+                    break;
+                case ft_ENUM8:   // int
+                case ft_ENUM16:
+                case ft_ENUM32:
+                    fprintf( ofs, TABx5 "%svalue: %li\n", base_indent, _const->value );
+                    break;
+                /* case ft_STORE8: */
+                /* case ft_STORE16: */
+                /* case ft_STORE32: */
+                /*     break; */
+                /* case ft_PUSH8: */
+                /* case ft_PUSH16: */
+                /* case ft_PUSH32: */
+                /*     break; */
+                case ft_BITMASK8:
+                case ft_BITMASK16:
+                case ft_BITMASK32:
+                    fprintf( ofs, TABx5 "%svalue: 0x%lx\n", base_indent, _const->value );
+                    break;
+                default:
+                    break;
+                }
+                fprintf( ofs, TABx5 "%sname: %s\n", base_indent, _const->name );
+                fprintf( ofs, TABx4 "%s}\n", base_indent );
+            }
+            fprintf( ofs, TABx3 "%s}\n", base_indent );
+            fprintf( ofs, TABx2 "%s}\n", base_indent );
+        }
+        fprintf( ofs, TABx1 "%s}\n", base_indent );
+        break;
+        // an LISTofStruct with count = 1
+    case ft_Struct:  // tl
+        break;
+        // specify bits per item for LISTofFormat
+    case ft_FORMAT8:  // tl
+        break;
+        // an event
+        // (would have also been possible with Struct and many IF)
+    case ft_EVENT:  // tl
+        break;
+        // jump to other parameter list if matches
+    case ft_IF8:
+        break;
+    case ft_IF16:
+        break;
+    case ft_IF32:
+        break;
+        // jump to other parameter list if matches atom name
+    case ft_IFATOM:  // tl
+        break;
+        // set end of last list manually, (for LISTofVarStruct)
+    case ft_LASTMARKER:
+        break;
+        // set the end of the current context, also change length
+        // of a VarStruct:
+    case ft_SET_SIZE:
+        // a ft_CARD32 looking into the ATOM list
+    case ft_ATOM:  // tl
+        break;
+        // always big endian
+    case ft_BE32:
+        break;
+        // get the #ofs value from the stack. (0 is the last pushed)
+    case ft_GET:
+        break;
+        // a fixed-point number 16+16 bit
+    case ft_FIXED:
+        break;
+        // a list of those
+    case ft_LISTofFIXED:
+        break;
+        // a fixed-point number 32+32 bit
+    case ft_FIXED3232:
+        break;
+        // a list of those
+    case ft_LISTofFIXED3232:
+        break;
+        // a 32 bit floating pointer number
+    case ft_FLOAT32:
+        break;
+        // a list of those
+    case ft_LISTofFLOAT32:
+        break;
+        // fraction with numerator and denominator 16 bit
+    case ft_FRACTION16_16:  // tl
+        // dito 32 bit
+    case ft_FRACTION32_32:
+        // nominator is unsigned
+    case ft_UFRACTION32_32:
+        // a 64 bit number consisting of first the high 32 bit, then
+        // the low 32 bit
+    case ft_INT32_32:
+        // decrement stored value by specific value
+    case ft_DECREMENT_STORED:
+    case ft_DIVIDE_STORED:
+        // set stored value to specific value
+    case ft_SET:
+        break;
+
+    }
+close_parameter:
     fprintf( ofs, "%s}\n", base_indent );
 }
 
@@ -319,13 +548,13 @@ static void fprint_requests(FILE* ofs) {
         fprintf( ofs, TABx1 "parameters: {\n" );
         for ( const struct parameter* param = req.parameters;
               param != NULL && param->name != NULL; ++param ) {
-            fprint_parameter(ofs, TABx2, param);
+            fprint_parameter(ofs, 2, param);
         }
         fprintf( ofs, TABx1 "}\n" );
         fprintf( ofs, TABx1 "answers: {\n" );
         for ( const struct parameter* ans = req.answers;
               ans != NULL && ans->name != NULL; ++ans ) {
-            fprint_parameter(ofs, TABx2, ans);
+            fprint_parameter(ofs, 2, ans);
         }
         fprintf( ofs, TABx1 "}\n" );
         fprintf( ofs, TABx1 "request_func: %s\n", request_func_name(req.request_func) );
@@ -351,14 +580,19 @@ void final_parse_state_dump(void) {
     /* extern const struct request *requests; */
     /* extern size_t num_requests; */
     fprint_requests(ofs);
+    fprintf( ofs, "\n\n" );
 
     /* extern const struct event *events; */
     /* extern size_t num_events; */
+
     /* extern const char * const *errors; */
     /* extern size_t num_errors; */
+
     /* extern const struct extension *extensions; */
     /* extern size_t num_extensions; */
+
     /* extern const struct parameter *unexpected_reply; */
+
     /* extern const struct parameter *setup_parameters; */
 
     return;
