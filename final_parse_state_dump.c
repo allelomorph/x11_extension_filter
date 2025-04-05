@@ -168,8 +168,9 @@ extern const struct parameter *setup_parameters;
 */
 
 #define DUMP_FILENAME "final_parse_state.txt"
+#define TAB2 "  "
 #define TAB4 "    "
-#define TABx1 TAB4
+#define TABx1 TAB2
 #define TABx2 TABx1 TABx1
 #define TABx3 TABx2 TABx1
 #define TABx4 TABx3 TABx1
@@ -296,6 +297,16 @@ static const char* fieldtype_name(const int ft) {
     return fieldtype_names[ft];
 }
 
+static void fprint_parameter(FILE* ofs, const char* base_indent,
+                             const struct parameter* param) {
+    assert(ofs != NULL);
+    assert(param != NULL);
+    fprintf( ofs, "%s{\n", base_indent );
+    fprintf( ofs, TABx1 "%sname: %s\n", base_indent, param->name );
+    fprintf( ofs, TABx1 "%stype: %s\n", base_indent, fieldtype_name(param->type) );
+    fprintf( ofs, "%s}\n", base_indent );
+}
+
 static void fprint_requests(FILE* ofs) {
     /* extern const struct request *requests; */
     /* extern size_t num_requests; */
@@ -308,19 +319,13 @@ static void fprint_requests(FILE* ofs) {
         fprintf( ofs, TABx1 "parameters: {\n" );
         for ( const struct parameter* param = req.parameters;
               param != NULL && param->name != NULL; ++param ) {
-            fprintf( ofs, TABx2 "{\n" );
-            fprintf( ofs, TABx3 "name: %s\n", param->name );
-            fprintf( ofs, TABx3 "type: %s\n", fieldtype_name(param->type) );
-            fprintf( ofs, TABx2 "}\n" );
+            fprint_parameter(ofs, TABx2, param);
         }
         fprintf( ofs, TABx1 "}\n" );
         fprintf( ofs, TABx1 "answers: {\n" );
         for ( const struct parameter* ans = req.answers;
               ans != NULL && ans->name != NULL; ++ans ) {
-            fprintf( ofs, TABx2 "{\n" );
-            fprintf( ofs, TABx3 "name: %s\n", ans->name );
-            fprintf( ofs, TABx3 "type: %s\n", fieldtype_name(ans->type) );
-            fprintf( ofs, TABx2 "}\n" );
+            fprint_parameter(ofs, TABx2, ans);
         }
         fprintf( ofs, TABx1 "}\n" );
         fprintf( ofs, TABx1 "request_func: %s\n", request_func_name(req.request_func) );
