@@ -565,6 +565,29 @@ static void fprint_requests(FILE* ofs) {
     }
 }
 
+static void fprint_extensions(FILE* ofs) {
+    /* extern const struct extension *extensions; */
+    /* extern size_t num_extensions; */
+    fprintf( ofs, "num_extensions: %lu\n", num_extensions );
+    for (size_t i = 0; i < num_extensions; ++i) {
+        struct extension ext = extensions[i];
+        fprintf( ofs, "extensions[%lu] {\n", i );
+        fprintf( ofs, TABx1 "name: %s\n", ext.name );
+        fprintf( ofs, TABx1 "namelen: %lu\n", ext.namelen );
+        /* const struct request *subrequests; */
+        /* unsigned char numsubrequests; */
+        /* const struct event *events; */
+        /* unsigned char numevents; */
+        fprintf( ofs, TABx1 "numerrors: %u\n", ext.numerrors );
+        for (unsigned char j = 0; j < ext.numerrors; ++j) {
+            fprintf( ofs, TABx1 "errors[%u]: %s\n", j, ext.errors[j] );
+        }
+        fprintf( ofs, TABx1 "numxgevents: %u\n", ext.numxgevents );
+        /* const struct event *xgevents; */
+        fprintf( ofs, ")\n" );
+    }
+}
+
 void final_parse_state_dump(void) {
     FILE *ofs = fopen(DUMP_FILENAME, "w");
     if ( ofs == NULL ) {
@@ -590,6 +613,7 @@ void final_parse_state_dump(void) {
 
     /* extern const struct extension *extensions; */
     /* extern size_t num_extensions; */
+    fprint_extensions(ofs);
 
     /* extern const struct parameter *unexpected_reply; */
 

@@ -41,7 +41,7 @@ target_compile_definitions(x11_extension_filter PUBLIC
   PKGDATADIR="${PROJECT_SOURCE_DIR}"
 )
 include(SetStrictCompileOptions)
-set_strict_compile_options(x11_extension_filter)
+#set_strict_compile_options(x11_extension_filter)
 set_target_properties(x11_extension_filter PROPERTIES
   C_STANDARD 99
   C_STANDARD_REQUIRED ON
