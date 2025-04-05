@@ -614,10 +614,12 @@ void final_parse_state_dump(void) {
     /* extern const struct extension *extensions; */
     /* extern size_t num_extensions; */
     fprint_extensions(ofs);
+    fprintf( ofs, "\n\n" );
 
     /* extern const struct parameter *unexpected_reply; */
 
     /* extern const struct parameter *setup_parameters; */
 
+    fclose( ofs );
     return;
 }
