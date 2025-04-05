@@ -176,6 +176,34 @@ extern const struct parameter *setup_parameters;
 #define TABx3 TABx2 TABx1
 #define TABx4 TABx3 TABx1
 #define TABx5 TABx4 TABx1
+#define TABx6 TABx5 TABx1
+#define TABx7 TABx6 TABx1
+#define TABx8 TABx7 TABx1
+#define TABx9 TABx8 TABx1
+
+static const char* base_indent(const unsigned int base_tab_ct) {
+    assert( base_tab_ct < 10 );
+    switch ( base_tab_ct ) {
+    case 1: return TABx1;
+    case 2: return TABx2;
+    case 3: return TABx3;
+    case 4: return TABx4;
+    case 5: return TABx5;
+    case 6: return TABx6;
+    case 7: return TABx7;
+    case 8: return TABx8;
+    case 9: return TABx9;
+    }
+    return "";
+}
+
+static unsigned int field_width(unsigned int max) {
+    unsigned int pow10 = 0;
+    for (; max; max /= 10) {
+        ++pow10;
+    }
+    return pow10;
+}
 
 static const char* request_func_name(request_func* rf) {
     if (rf == requestQueryExtension ) {
@@ -298,50 +326,47 @@ static const char* fieldtype_name(const int ft) {
     return fieldtype_names[ft];
 }
 
-static void fprint_parameter(FILE* ofs, const int base_tab_ct,
+static void fprint_parameter(FILE* ofs, const unsigned int base_tab_ct,
                              const struct parameter* param) {
     assert(ofs != NULL);
     assert(param != NULL);
-    assert(base_tab_ct >= 0 && base_tab_ct <= 5);
-    const char* base_indent =
-        base_tab_ct == 1 ? TABx1 :
-        base_tab_ct == 2 ? TABx2 :
-        base_tab_ct == 3 ? TABx3 :
-        base_tab_ct == 4 ? TABx4 :
-        base_tab_ct == 5 ? TABx5 : "";
-    fprintf( ofs, "%s{\n", base_indent );
-    fprintf( ofs, TABx1 "%sname: %s\n", base_indent, param->name );
-    fprintf( ofs, TABx1 "%stype: %s\n", base_indent, fieldtype_name(param->type) );
+    const char* _base_indent = base_indent(base_tab_ct);
+    fprintf( ofs, "%s{\n",
+             _base_indent );
+    fprintf( ofs, TABx1 "%sname: %s\n",
+             _base_indent, param->name );
+    fprintf( ofs, TABx1 "%stype: %s\n",
+             _base_indent, fieldtype_name(param->type) );
     if ( param->o.constants == NULL ||
          param->o.parameters == NULL ||
          param->o.values == NULL ) {  // intentionally redundant check of union
         goto close_parameter;
     }
     if (param->type >= ft_INT8 && param->type <= ft_BITMASK32) {
-        fprintf( ofs, TABx1 "%so.constants: {\n", base_indent );
+        fprintf( ofs, TABx1 "%so.constants: {\n", _base_indent );
         for (const struct constant* _const = param->o.constants;
              _const != NULL && _const->name != NULL; ++_const) {
-            fprintf( ofs, TABx2 "%s{\n", base_indent );
+            fprintf( ofs, TABx2 "%s{\n", _base_indent );
             switch (param->type) {
             case ft_INT8:
             case ft_INT16:
             case ft_INT32:
-                fprintf( ofs, TABx3 "%svalue: %li\n", base_indent, _const->value );
+                fprintf( ofs, TABx3 "%svalue: %li\n", _base_indent, _const->value );
                 break;
             case ft_UINT8:
             case ft_UINT16:
             case ft_UINT32:
-                fprintf( ofs, TABx3 "%svalue: %lu\n", base_indent, _const->value );
+                fprintf( ofs, TABx3 "%svalue: %lu\n", _base_indent, _const->value );
                 break;
             case ft_CARD8:  // hex
             case ft_CARD16:
             case ft_CARD32:
-                fprintf( ofs, TABx3 "%svalue: 0x%lx\n", base_indent, _const->value );
+                fprintf( ofs, TABx3 "%svalue: 0x%lx\n", _base_indent, _const->value );
                 break;
             case ft_ENUM8:  // int
             case ft_ENUM16:
             case ft_ENUM32:
-                fprintf( ofs, TABx3 "%svalue: %li\n", base_indent, _const->value );
+                fprintf( ofs, TABx3 "%svalue: %li\n", _base_indent, _const->value );
                 break;
             /* case ft_STORE8: */
             /* case ft_STORE16: */
@@ -354,15 +379,15 @@ static void fprint_parameter(FILE* ofs, const int base_tab_ct,
             case ft_BITMASK8:
             case ft_BITMASK16:
             case ft_BITMASK32:
-                fprintf( ofs, TABx3 "%svalue: 0x%lx\n", base_indent, _const->value );
+                fprintf( ofs, TABx3 "%svalue: 0x%lx\n", _base_indent, _const->value );
                 break;
             default:
                 break;
             }
-            fprintf( ofs, TABx3 "%sname: %s\n", base_indent, _const->name );
-            fprintf( ofs, TABx2 "%s}\n", base_indent );
+            fprintf( ofs, TABx3 "%sname: %s\n", _base_indent, _const->name );
+            fprintf( ofs, TABx2 "%s}\n", _base_indent );
         }
-        fprintf( ofs, TABx1 "%s}\n", base_indent );
+        fprintf( ofs, TABx1 "%s}\n", _base_indent );
     } else if (false) {
     }
     switch (param->type) {
@@ -405,38 +430,38 @@ static void fprint_parameter(FILE* ofs, const int base_tab_ct,
         //	  are of type (struct value*) interpreteted at this
         //	  offset
     case ft_LISTofVALUE:
-        fprintf( ofs, TABx1 "%so.values: {\n", base_indent );
+        fprintf( ofs, TABx1 "%so.values: {\n", _base_indent );
         for (const struct value* val = param->o.values;
              val != NULL && val->name != NULL; ++val) {
-            fprintf( ofs, TABx2 "%s{\n", base_indent );
-            fprintf( ofs, TABx3 "%sflag: 0x%lx\n", base_indent, val->flag );
-            fprintf( ofs, TABx3 "%sname: %s\n", base_indent, val->name );
+            fprintf( ofs, TABx2 "%s{\n", _base_indent );
+            fprintf( ofs, TABx3 "%sflag: 0x%lx\n", _base_indent, val->flag );
+            fprintf( ofs, TABx3 "%sname: %s\n", _base_indent, val->name );
             assert(val->type <= ft_BITMASK32);
-            fprintf( ofs, TABx3 "%stype: %s\n", base_indent, fieldtype_name(val->type) );
-            fprintf( ofs, TABx3 "%sconstants: {\n", base_indent );
+            fprintf( ofs, TABx3 "%stype: %s\n", _base_indent, fieldtype_name(val->type) );
+            fprintf( ofs, TABx3 "%sconstants: {\n", _base_indent );
             for (const struct constant* _const = val->constants;
                  _const != NULL && _const->name != NULL; ++_const) {
-                fprintf( ofs, TABx4 "%s{\n", base_indent );
+                fprintf( ofs, TABx4 "%s{\n", _base_indent );
                 switch (val->type) {
                 case ft_INT8:
                 case ft_INT16:
                 case ft_INT32:
-                    fprintf( ofs, TABx5 "%svalue: %li\n", base_indent, _const->value );
+                    fprintf( ofs, TABx5 "%svalue: %li\n", _base_indent, _const->value );
                     break;
                 case ft_UINT8:
                 case ft_UINT16:
                 case ft_UINT32:
-                    fprintf( ofs, TABx5 "%svalue: %lu\n", base_indent, _const->value );
+                    fprintf( ofs, TABx5 "%svalue: %lu\n", _base_indent, _const->value );
                     break;
                 case ft_CARD8:   // hex
                 case ft_CARD16:
                 case ft_CARD32:
-                    fprintf( ofs, TABx5 "%svalue: 0x%lx\n", base_indent, _const->value );
+                    fprintf( ofs, TABx5 "%svalue: 0x%lx\n", _base_indent, _const->value );
                     break;
                 case ft_ENUM8:   // int
                 case ft_ENUM16:
                 case ft_ENUM32:
-                    fprintf( ofs, TABx5 "%svalue: %li\n", base_indent, _const->value );
+                    fprintf( ofs, TABx5 "%svalue: %li\n", _base_indent, _const->value );
                     break;
                 /* case ft_STORE8: */
                 /* case ft_STORE16: */
@@ -449,18 +474,18 @@ static void fprint_parameter(FILE* ofs, const int base_tab_ct,
                 case ft_BITMASK8:
                 case ft_BITMASK16:
                 case ft_BITMASK32:
-                    fprintf( ofs, TABx5 "%svalue: 0x%lx\n", base_indent, _const->value );
+                    fprintf( ofs, TABx5 "%svalue: 0x%lx\n", _base_indent, _const->value );
                     break;
                 default:
                     break;
                 }
-                fprintf( ofs, TABx5 "%sname: %s\n", base_indent, _const->name );
-                fprintf( ofs, TABx4 "%s}\n", base_indent );
+                fprintf( ofs, TABx5 "%sname: %s\n", _base_indent, _const->name );
+                fprintf( ofs, TABx4 "%s}\n", _base_indent );
             }
-            fprintf( ofs, TABx3 "%s}\n", base_indent );
-            fprintf( ofs, TABx2 "%s}\n", base_indent );
+            fprintf( ofs, TABx3 "%s}\n", _base_indent );
+            fprintf( ofs, TABx2 "%s}\n", _base_indent );
         }
-        fprintf( ofs, TABx1 "%s}\n", base_indent );
+        fprintf( ofs, TABx1 "%s}\n", _base_indent );
         break;
         // an LISTofStruct with count = 1
     case ft_Struct:  // tl
@@ -533,58 +558,127 @@ static void fprint_parameter(FILE* ofs, const int base_tab_ct,
 
     }
 close_parameter:
-    fprintf( ofs, "%s}\n", base_indent );
+    fprintf( ofs, "%s}\n", _base_indent );
 }
 
-static void fprint_requests(FILE* ofs) {
-    /* extern const struct request *requests; */
-    /* extern size_t num_requests; */
-    fprintf( ofs, "num_requests: %lu\n", num_requests );
-    for (size_t i = 0; i < num_requests; ++i) {
-        struct request req = requests[i];
-        fprintf( ofs, "requests[%lu] {\n", i );
-        fprintf( ofs, TABx1 "name: %s\n", req.name );
+static void fprint_requests(FILE* ofs, const unsigned int base_tab_ct,
+                            const struct request* requests,
+                            const unsigned int request_ct,
+                            const char* request_ct_varname) {
+    assert(ofs != NULL);
+    assert(requests != NULL);
+    assert(request_ct_varname != NULL);
+    const char* _base_indent = base_indent(base_tab_ct);
+    fprintf( ofs, "%s%s: %u\n",
+             _base_indent, request_ct_varname, request_ct );
+    fprintf( ofs, "%srequests {\n",
+             _base_indent );
+    for (unsigned int i = 0; i < request_ct; ++i) {
+        const struct request req = requests[i];
+        fprintf( ofs, TABx1 "%s[%u] {\n",
+                 _base_indent, i );
+        fprintf( ofs, TABx2 "%sname: %s\n",
+                 _base_indent, req.name );
         // note parse.c print_parameters
-        fprintf( ofs, TABx1 "parameters: {\n" );
+        fprintf( ofs, TABx2 "%sparameters: {\n",
+                 _base_indent );
         for ( const struct parameter* param = req.parameters;
               param != NULL && param->name != NULL; ++param ) {
-            fprint_parameter(ofs, 2, param);
+            fprint_parameter(ofs, base_tab_ct + 3, param);
         }
-        fprintf( ofs, TABx1 "}\n" );
-        fprintf( ofs, TABx1 "answers: {\n" );
+        fprintf( ofs, TABx2 "%s}\n",
+                 _base_indent );
+        fprintf( ofs, TABx2 "%sanswers: {\n",
+                 _base_indent );
         for ( const struct parameter* ans = req.answers;
               ans != NULL && ans->name != NULL; ++ans ) {
-            fprint_parameter(ofs, 2, ans);
+            fprint_parameter(ofs, base_tab_ct + 3, ans);
         }
-        fprintf( ofs, TABx1 "}\n" );
-        fprintf( ofs, TABx1 "request_func: %s\n", request_func_name(req.request_func) );
-        fprintf( ofs, TABx1 "reply_func: %s\n", reply_func_name(req.reply_func) );
-        fprintf( ofs, TABx1 "record_variables: %i  // stack values to be transferred to the reply code\n",
-                 req.record_variables );
-        fprintf( ofs, "}\n" );
+        fprintf( ofs, TABx2 "%s}\n",
+                 _base_indent );
+        fprintf( ofs, TABx2 "%srequest_func: %s\n",
+                 _base_indent, request_func_name(req.request_func) );
+        fprintf( ofs, TABx2 "%sreply_func: %s\n",
+                 _base_indent, reply_func_name(req.reply_func) );
+        fprintf( ofs, TABx2 "%srecord_variables: %i  // stack values to be transferred to the reply code\n",
+                 _base_indent, req.record_variables );
+        fprintf( ofs, TABx1 "%s}\n",
+                 _base_indent );
     }
+    fprintf( ofs, "%s}\n",
+             _base_indent );
+}
+
+static void fprint_events(FILE* ofs, const unsigned int base_tab_ct,
+                          const struct event* events,
+                          const unsigned int event_ct,
+                          const char* event_ct_varname) {
+    assert(ofs != NULL);
+    assert(events != NULL);
+    assert(event_ct_varname != NULL);
+    const char* _base_indent = base_indent(base_tab_ct);
+    fprintf( ofs, "%s%s: %u\n",
+             _base_indent, event_ct_varname, event_ct );
+    fprintf( ofs, "%sevents {\n",
+             _base_indent );
+    for (unsigned int i = 0; i < num_events; ++i) {
+        const struct event evnt = events[i];
+        fprintf( ofs, TABx1 "%s[%u] {\n",
+                 _base_indent, i );
+        fprintf( ofs, TABx2 "%sname: %s\n",
+                 _base_indent, evnt.name );
+        fprintf( ofs, TABx2 "%sparameters: {\n",
+                 _base_indent );
+        for ( const struct parameter* param = evnt.parameters;
+              param != NULL && param->name != NULL; ++param ) {
+            fprint_parameter(ofs, base_tab_ct + 3, param);
+        }
+        fprintf( ofs, TABx2 "%s}\n",
+                 _base_indent );
+        fprintf( ofs, TABx2 "%stype: %s (%i)\n",
+                 _base_indent,
+                 evnt.type == 0 ? "event_normal" : "event_xge", evnt.type );
+        fprintf( ofs, TABx1 "%s}\n",
+                 _base_indent );
+    }
+    fprintf( ofs, "%s}\n",
+             _base_indent );
+}
+
+static void fprint_errors(FILE* ofs, const unsigned int base_tab_ct,
+                          const char* const* errors,
+                          const unsigned int error_ct,
+                          const char* error_ct_varname) {
+    assert(ofs != NULL);
+    assert(errors != NULL);
+    assert(error_ct_varname != NULL);
+    const char* _base_indent = base_indent(base_tab_ct);
+    fprintf( ofs, "%s%s: %u\n",
+             _base_indent, error_ct_varname, error_ct );
+    fprintf( ofs, "%serrors {\n",
+             _base_indent );
+    for (unsigned int i = 0, iwidth = field_width(error_ct);
+         i < num_errors; ++i) {
+        const char* error = errors[i];
+        fprintf( ofs, TABx1 "%s[%*u] %s\n",
+                 _base_indent, (int)iwidth, i, error );
+    }
+    fprintf( ofs, "%s}\n",
+             _base_indent );
 }
 
 static void fprint_extensions(FILE* ofs) {
-    /* extern const struct extension *extensions; */
-    /* extern size_t num_extensions; */
     fprintf( ofs, "num_extensions: %lu\n", num_extensions );
     for (size_t i = 0; i < num_extensions; ++i) {
-        struct extension ext = extensions[i];
+        const struct extension ext = extensions[i];
         fprintf( ofs, "extensions[%lu] {\n", i );
         fprintf( ofs, TABx1 "name: %s\n", ext.name );
         fprintf( ofs, TABx1 "namelen: %lu\n", ext.namelen );
-        /* const struct request *subrequests; */
-        /* unsigned char numsubrequests; */
-        /* const struct event *events; */
-        /* unsigned char numevents; */
-        fprintf( ofs, TABx1 "numerrors: %u\n", ext.numerrors );
-        for (unsigned char j = 0; j < ext.numerrors; ++j) {
-            fprintf( ofs, TABx1 "errors[%u]: %s\n", j, ext.errors[j] );
-        }
-        fprintf( ofs, TABx1 "numxgevents: %u\n", ext.numxgevents );
-        /* const struct event *xgevents; */
-        fprintf( ofs, ")\n" );
+        /* fprint_requests( ofs, 1, ext.subrequests, ext.numsubrequests, "numsubrequests" ); */
+        /* fprint_events( ofs, 1, ext.events, ext.numevents, "numevents" ); */
+        /* fprint_errors( ofs, 1, ext.errors, ext.numerrors, "numerrors" ); */
+        /* fprint_events( ofs, 1, ext.xgevents, ext.numxgevents, "numxgevents" ); */
+        fprintf( ofs, "}\n" );
     }
 }
 
@@ -602,14 +696,18 @@ void final_parse_state_dump(void) {
 
     /* extern const struct request *requests; */
     /* extern size_t num_requests; */
-    fprint_requests(ofs);
+    fprint_requests( ofs, 0, requests, num_requests, "num_requests" );
     fprintf( ofs, "\n\n" );
 
     /* extern const struct event *events; */
     /* extern size_t num_events; */
+    fprint_events( ofs, 0, events, num_events, "num_events" );
+    fprintf( ofs, "\n\n" );
 
-    /* extern const char * const *errors; */
+    /* extern const char* const* errors; */
     /* extern size_t num_errors; */
+    fprint_errors( ofs, 0, errors, num_errors, "num_errors" );
+    fprintf( ofs, "\n\n" );
 
     /* extern const struct extension *extensions; */
     /* extern size_t num_extensions; */
