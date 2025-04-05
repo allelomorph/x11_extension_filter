@@ -341,60 +341,65 @@ static void fprint_constants(FILE* ofs, const unsigned int base_tab_ct,
         fprintf( ofs, "%s%s: {\n",
                  _base_indent, constants_varname );
     }
-    assert( type <= ft_BITMASK32 );
+//    assert( type <= ft_BITMASK32 );
     for (const struct constant* _const = constants;
          _const != NULL && _const->name != NULL; ++_const) {
         fprintf( ofs, TABx1 "%s{\n",
                  _base_indent );
-            switch (type) {
-            case ft_INT8:
-            case ft_INT16:
-            case ft_INT32:
-                fprintf( ofs, TABx2 "%svalue: %li\n",
-                         _base_indent, _const->value );
-                break;
-            case ft_UINT8:
-            case ft_UINT16:
-            case ft_UINT32:
-                fprintf( ofs, TABx2 "%svalue: %lu\n",
-                         _base_indent, _const->value );
-                break;
-            case ft_CARD8:  // hex
-            case ft_CARD16:
-            case ft_CARD32:
-                fprintf( ofs, TABx2 "%svalue: 0x%lx\n",
-                         _base_indent, _const->value );
-                break;
-            case ft_ENUM8:  // int
-            case ft_ENUM16:
-            case ft_ENUM32:
-                fprintf( ofs, TABx2 "%svalue: %li\n",
-                         _base_indent, _const->value );
-                break;
-            /* case ft_STORE8: */
-            /* case ft_STORE16: */
-            /* case ft_STORE32: */
-            /*     break; */
-            /* case ft_PUSH8: */
-            /* case ft_PUSH16: */
-            /* case ft_PUSH32: */
-            /*     break; */
-            case ft_BITMASK8:
-            case ft_BITMASK16:
-            case ft_BITMASK32:
-                fprintf( ofs, TABx2 "%svalue: 0x%lx\n",
-                         _base_indent, _const->value );
-                break;
-            default:
-                break;
-            }
-            fprintf( ofs, TABx2 "%sname: %s\n",
-                     _base_indent, _const->name );
-            fprintf( ofs, TABx1 "%s}\n",
-                     _base_indent );
+        switch (type) {
+        case ft_INT8:
+        case ft_INT16:
+        case ft_INT32:
+            fprintf( ofs, TABx2 "%svalue: %li\n",
+                     _base_indent, _const->value );
+            break;
+        case ft_UINT8:
+        case ft_UINT16:
+        case ft_UINT32:
+            fprintf( ofs, TABx2 "%svalue: %lu\n",
+                     _base_indent, _const->value );
+            break;
+        case ft_CARD8:  // hex
+        case ft_CARD16:
+        case ft_CARD32:
+            fprintf( ofs, TABx2 "%svalue: 0x%lx\n",
+                     _base_indent, _const->value );
+            break;
+        case ft_ENUM8:  // int
+        case ft_ENUM16:
+        case ft_ENUM32:
+            fprintf( ofs, TABx2 "%svalue: %li\n",
+                     _base_indent, _const->value );
+            break;
+        /* case ft_STORE8: */
+        /* case ft_STORE16: */
+        /* case ft_STORE32: */
+        /*     break; */
+        /* case ft_PUSH8: */
+        /* case ft_PUSH16: */
+        /* case ft_PUSH32: */
+        /*     break; */
+        case ft_BITMASK8:
+        case ft_BITMASK16:
+        case ft_BITMASK32:
+            fprintf( ofs, TABx2 "%svalue: 0x%lx\n",
+                     _base_indent, _const->value );
+            break;
+        case ft_ATOM:  // TBD example comes up, but docs say should be <= ft_BITMASK32
+            break;
+        default:
+            // TBD detect any other values above ft_BITMASK32
+            puts(fieldtype_name(type));
+            assert(0);
+            break;
         }
-        fprintf( ofs, "%s}\n",
+        fprintf( ofs, TABx2 "%sname: %s\n",
+                 _base_indent, _const->name );
+        fprintf( ofs, TABx1 "%s}\n",
                  _base_indent );
+    }
+    fprintf( ofs, "%s}\n",
+             _base_indent );
 }
 
 static void fprint_values(FILE* ofs, const unsigned int base_tab_ct,
@@ -419,7 +424,6 @@ static void fprint_values(FILE* ofs, const unsigned int base_tab_ct,
                  _base_indent, val->flag );
         fprintf( ofs, TABx2 "%sname: %s\n",
                  _base_indent, val->name );
-        assert( val->type <= ft_BITMASK32 );
         fprintf( ofs, TABx2 "%stype: %s\n",
                  _base_indent, fieldtype_name(val->type) );
         fprint_constants( ofs, base_tab_ct + 2,
@@ -454,8 +458,7 @@ static void fprint_parameters(FILE* ofs, const unsigned int base_tab_ct,
         fprintf( ofs, TABx2 "%stype: %s\n",
                  _base_indent, fieldtype_name(param->type) );
         // intentionally redundant check of union
-        if ( param->o.constants != NULL ||
-             param->o.parameters != NULL ||
+        if ( param->o.constants != NULL || param->o.parameters != NULL ||
              param->o.values != NULL ) {
             switch (param->type) {
             case ft_INT8:
@@ -611,6 +614,8 @@ static void fprint_requests(FILE* ofs, const unsigned int base_tab_ct,
     const char* _base_indent = base_indent(base_tab_ct);
     fprintf( ofs, "%s%s: %u\n",
              _base_indent, request_ct_varname, request_ct );
+    if (request_ct == 0)
+        return;
     fprintf( ofs, "%srequests {\n",
              _base_indent );
     for (unsigned int i = 0; i < request_ct; ++i) {
@@ -646,9 +651,11 @@ static void fprint_events(FILE* ofs, const unsigned int base_tab_ct,
     const char* _base_indent = base_indent(base_tab_ct);
     fprintf( ofs, "%s%s: %u\n",
              _base_indent, event_ct_varname, event_ct );
+    if (event_ct == 0)
+        return;
     fprintf( ofs, "%sevents {\n",
              _base_indent );
-    for (unsigned int i = 0; i < num_events; ++i) {
+    for (unsigned int i = 0; i < event_ct; ++i) {
         const struct event evnt = events[i];
         fprintf( ofs, TABx1 "%s[%u] {\n",
                  _base_indent, i );
@@ -676,10 +683,12 @@ static void fprint_errors(FILE* ofs, const unsigned int base_tab_ct,
     const char* _base_indent = base_indent(base_tab_ct);
     fprintf( ofs, "%s%s: %u\n",
              _base_indent, error_ct_varname, error_ct );
+    if (error_ct == 0)
+        return;
     fprintf( ofs, "%serrors {\n",
              _base_indent );
     for (unsigned int i = 0, iwidth = field_width(error_ct);
-         i < num_errors; ++i) {
+         i < error_ct; ++i) {
         const char* error = errors[i];
         fprintf( ofs, TABx1 "%s[%*u] %s\n",
                  _base_indent, (int)iwidth, i, error );
@@ -695,10 +704,10 @@ static void fprint_extensions(FILE* ofs) {
         fprintf( ofs, "extensions[%lu] {\n", i );
         fprintf( ofs, TABx1 "name: %s\n", ext.name );
         fprintf( ofs, TABx1 "namelen: %lu\n", ext.namelen );
-        /* fprint_requests( ofs, 1, ext.subrequests, ext.numsubrequests, "numsubrequests" ); */
-        /* fprint_events( ofs, 1, ext.events, ext.numevents, "numevents" ); */
-        /* fprint_errors( ofs, 1, ext.errors, ext.numerrors, "numerrors" ); */
-        /* fprint_events( ofs, 1, ext.xgevents, ext.numxgevents, "numxgevents" ); */
+        fprint_requests( ofs, 1, ext.subrequests, ext.numsubrequests, "numsubrequests" );
+        fprint_events( ofs, 1, ext.events, ext.numevents, "numevents" );
+        fprint_errors( ofs, 1, ext.errors, ext.numerrors, "numerrors" );
+        fprint_events( ofs, 1, ext.xgevents, ext.numxgevents, "numxgevents" );
         fprintf( ofs, "}\n" );
     }
 }
